@@ -1,87 +1,73 @@
 //renderTodo 
-var API = 'http://localhost:3000/lists'
-
-function start() {
-    gettodo(renderTodo);
-    handleCreateForm();
-}
-
-start();
-
-
-function gettodo(callback) {
-
-    fetch(API)
-        .then(function (response) {
-            return response.json();
-        })
-        .then(callback);
-}
-
-function Addtasks(data, callback) {
-    var options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-
-    };
-    fetch(API, options)
-        .then(function (response) {
-            response.json();
-        })
-        .then(callback);
-}
-
-function Delete(id) {
-    var Delete = document.querySelector('#btnDelete')
-    Delete.addEventListener('click', function () {
-        var options = {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-        };
-        fetch(API + '/' + user.id + '/' + id, options)
-            .then(function (response) {
-                response.json();
-            })
-            .then(callback);
-    })
-}
-
-function renderTodo(tasks) {
-    var listtodo = document.querySelector('#listtodo');
-    var htmls = tasks.map(function (task) {
-
-        return `
-               <table>
-               <td>${task.id}</td>
-               <td>${task.title}</td>
-               <td>${task.completed}</td>
-               </table>
-                
+let output = '';
+const AddTasks = document.querySelector('.table-list');
+const AddPost = document.querySelector('.Add-Post');
+const TitleTasks = document.getElementById('title')
+const CompletedTasks = document.getElementById('completed')
+const Cusromize = document.querySelector('.custormize')
+const renderTasks = function (e) {
+    e.splice(0, 100).map(e => { //lấy 100 dòng đầu  tiên
+        output += `
+        <table  data-id = "${e.id}">
+                <td>${e.id}</td>
+                <td>${e.title}</td>
+                <td>${e.completed}</td>
+                <td>
+                <input type="button" value="Delete" class="h" id="btnDelete"></input>
+                </td>
+                <td>
+                <input type="button" value="Edit" class="h" id="btnEdit"></input>
+                </td>
+        </table>
         `
     });
-    listtodo.innerHTML = htmls.join(' ');
-
+    AddTasks.innerHTML = output;
 }
+//GET 
+var API = 'https://jsonplaceholder.typicode.com/todos'
 
-function handleCreateForm() {
-    var Addtask = document.querySelector('#btnAdd')
+fetch(API)
+    .then(res => res.json())
+    .then(data => renderTasks(data))
 
-    Addtask.addEventListener('click', function () {
-        var title = document.querySelector('input[name = "title"]').value;
-        console.log(title)
-        var completed = document.querySelector('input[name = "completed"]').value;
-        console.log(completed)
-        var form = {
-            title: title,
-            completed: completed
-        };
+AddTasks.addEventListener('click', (e) => {
+            console.log(e.target.id)
+            e.preventDefault();
+            let delButton = e.target.id == 'btnDelete'
+            let editButton = e.target.id == 'btnEdit'
+            let id = e.target.parentElement.dataset.id
+            console.log(id)
+            //Delete Remove methods DELETE
+            if (delButton) {
+                fetch(`${API}/${id}`, {
+                        method: 'DELETE',
+                    })
+                    .then(res => res.json())
+                    .then(() => location.reload())
+            }
+            
+        });
 
-        Addtasks(form)
-    })
-}
+            //Post
+            AddPost.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log(TitleTasks.value)
+                console.log('completing !')
+                fetch(API, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+
+                        body: JSON.stringify({
+                            title: TitleTasks.value,
+                            completed: CompletedTasks.value,
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const dataArr = [];
+                        dataArr.push(data);
+                        renderTasks(dataArr);
+                    })
+            })
